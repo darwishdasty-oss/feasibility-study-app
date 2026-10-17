@@ -1,0 +1,102 @@
+name: Build Desktop App (Windows .exe)
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install Dependencies
+        run: bun install
+
+      - name: Setup Database
+        run: |
+          bun run db:push
+        env:
+          DATABASE_URL: "file:./db/custom.db"
+
+      - name: Build Next.js (Standalone)
+        run: bun run build
+        env:
+          DATABASE_URL: "file:./db/custom.db"
+          NEXTAUTH_SECRET: "github-actions-build-secret"
+          NEXTAUTH_URL: "http://localhost:3000"
+
+      - name: Copy static files
+        run: |
+          cp -r .next/static .next/standalone/.next/
+          cp -r public .next/standalone/
+
+      - name: Install Electron Dependencies
+        run: |
+          cd .next/standalone
+          npm init -y
+          npm install electron electron-builder --save-dev
+
+      - name: Copy Electron files
+        run: |
+          cp -r electron .next/standalone/
+          cp electron-builder.yml .next/standalone/
+          cp -r public .next/standalone/
+
+      - name: Build Electron App
+        run: |
+          cd .next/standalone
+          npx electron-builder --win --config electron-builder.yml
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: feasibility-app-windows
+          path: .next/standalone/dist/*.exe
+          retention-days: 30
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: .next/standalone/dist/*.exe
+          draft: false
+          prerelease: false
+          name: برنامج إعداد دراسات الجدوى ${{ github.ref_name }}
+          body: |
+            ## برنامج إعداد دراسات الجدوى
+
+            ### التحميل:
+            - حمل ملف `.exe` أدناه
+            - شغّله لتثبيت البرنامج
+            - سيظهر في قائمة Start وسطح المكتب
+
+            ### المتطلبات:
+            - Windows 10/11 (64-bit)
+            - 500 MB مساحة فارغة
+
+            ### الميزات:
+            - 8 دراسات متكاملة
+            - 34 محصول زراعي
+            - 30 مصنع تحويلي
+            - 10 مشاريع طاقة
+            - مساعد ذكي
+            - 8 ثيمات
+            - دعم عربي/إنجليزي
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
