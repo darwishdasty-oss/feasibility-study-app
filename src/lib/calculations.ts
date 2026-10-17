@@ -122,16 +122,17 @@ export function calculateMIRR(cashFlows: number[], financeRate: number, reinvest
   if (!positives.length || !negatives.length) return null;
 
   // القيمة المستقبلية للتدفقات الموجبة (بمعدل إعادة الاستثمار)
-  const fv = positives.reduce((sum, cf, i) => {
-    const yearIdx = cashFlows.indexOf(cf);
-    const years = cashFlows.length - 1 - yearIdx;
+  // ملاحظة: نستخدم فهرس كل تدفق مباشرة (وليس indexOf) لتفادي الالتباس عند تكرار نفس القيمة
+  const fv = cashFlows.reduce((sum, cf, t) => {
+    if (cf <= 0) return sum;
+    const years = cashFlows.length - 1 - t;
     return sum + cf * Math.pow(1 + reinvestRate / 100, years);
   }, 0);
 
   // القيمة الحالية للتدفقات السالبة (بمعدل التمويل)
-  const pv = negatives.reduce((sum, cf, i) => {
-    const yearIdx = cashFlows.indexOf(cf);
-    return sum + cf / Math.pow(1 + financeRate / 100, yearIdx);
+  const pv = cashFlows.reduce((sum, cf, t) => {
+    if (cf >= 0) return sum;
+    return sum + cf / Math.pow(1 + financeRate / 100, t);
   }, 0);
 
   if (pv === 0) return null;
