@@ -1,0 +1,14 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it using the metadata below."
+title: "Feasibility-Study-App: an Arabic-first, open-source web application for comprehensive economic feasibility studies integrating NPV, IRR, MIRR, WACC, Monte Carlo simulation, and sensitivity analysis with Yemen reference datasets"
+authors:
+  - family-names: Hebah
+    given-names: Abbas Ahmed Mohammed
+    orcid: "https://orcid.org/0009-0000-5689-2157"
+version: v1.0.0
+date-released: "2026-10-17"
+doi: 10.5281/zenodo.23430653
+license: MIT
+repository-code: "https://github.com/darwishdasty-oss/feasibility-study-app"
+abstract: "An Arabic-first, open-source web application for comprehensive economic feasibility studies integrating NPV, IRR, MIRR, WACC, Monte Carlo simulation, and sensitivity analysis with Yemen reference datasets."
+keywords: [feasibility-study, npv, irr, monte-carlo, sensitivity-analysis, arabic, yemen]
